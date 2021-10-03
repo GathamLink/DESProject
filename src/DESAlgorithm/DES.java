@@ -1,10 +1,12 @@
 package DESAlgorithm;
 
+import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import static DESAlgorithm.DESMetric.*;
 
@@ -17,11 +19,9 @@ public class DES {
     private int Origin_Length;
 
     private int[][] Sub_Keys = new int[16][48];
-    private String Content;
     private int P_Origin_Length;
 
     public DES(String key, String content) {
-        this.Content = content;
         P_Origin_Length = content.getBytes().length;
         generateKeys(key);
     }
@@ -36,11 +36,11 @@ public class DES {
         byte[] c = des.deal(origin.getBytes(), 1);
         BASE64Encoder encoder = new BASE64Encoder();
         System.out.println("密文：\n"+encoder.encode(c));
-        byte[] test = origin.getBytes();
+        BASE64Decoder decoder = new BASE64Decoder();
+        byte[] test = decoder.decodeBuffer("ltACiHjVjIkotGo4p6Jwkg==");
         byte[] p = des.deal(c, 0);
-//        byte[] p_d = new byte[origin.getBytes().length];
-        byte[] p_d = new byte[p.length];
-        System.arraycopy(p, 0, p_d, 0, origin.getBytes().length);
+//        byte[] p_d = new byte[p.length];
+//        System.arraycopy(p, 0, p_d, 0, origin.getBytes().length);
         System.out.println("明文：\n"+new String(p));
     }
 
@@ -70,11 +70,11 @@ public class DES {
             System.arraycopy(p_Padding, i * 8, f_p, 0, 8);
             System.arraycopy(encrytionUnit(f_p, Sub_Keys, flag), 0, result_data, i * 8, 8);
         }
-        if (flag == 0) {
-            byte[] p_result_data = new byte[P_Origin_Length];
-            System.arraycopy(result_data, 0, p_result_data, 0, P_Origin_Length);
-            return p_result_data;
-        }
+//        if (flag == 0) {
+//            byte[] p_result_data = new byte[P_Origin_Length];
+//            System.arraycopy(result_data, 0, p_result_data, 0, P_Origin_Length);
+//            return p_result_data;
+//        }
 
         return result_data;
 //        return null;
