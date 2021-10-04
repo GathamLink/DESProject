@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class userView {
 
     public static void main(String[] args) throws IOException {
-        File file = new File("C:\\Users\\Link\\Desktop\\Sys&Ver\\Assignment 1 PDF.pdf");
+        File file = new File("C:\\Users\\LINK\\Desktop\\openPic.png");
         FileInputStream fis = new FileInputStream(file);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -24,7 +24,7 @@ public class userView {
         FileOutputStream fos = null;
         File file1 = null;
         try {
-            file1 = new File("C:\\Users\\Link\\Desktop\\test.pdf");
+            file1 = new File("C:\\Users\\Link\\Desktop\\test.png");
             if (!file1.getParentFile().exists()) {
                 file1.getParentFile().mkdirs();
             }
