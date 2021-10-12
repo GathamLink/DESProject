@@ -183,6 +183,7 @@ public class CustomDES {
         if (flag==0){//解密
             byte[] p_result_data=new byte[p_origin_length];
             System.arraycopy(result_data,0,p_result_data,0,p_origin_length);
+            System.out.println(Arrays.toString(p_result_data));
             return  p_result_data;
         }
         return result_data;
