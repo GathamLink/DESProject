@@ -25,8 +25,7 @@ public class testView {
 
         final JTabbedPane tabbedPane = new JTabbedPane();
 
-
-        // 创建第 1 个选项卡（选项卡只包含 标题）
+        tabbedPane.addTab("Introduction", createIntroductionPanel());
         tabbedPane.addTab("Text DES Encryption & Decryption", createTextPanel());
         tabbedPane.addTab("File DES Encryption & Decryption", createFilePanel());
 
@@ -36,7 +35,20 @@ public class testView {
     }
 
     private static JComponent createIntroductionPanel() {
-        return null;
+        JPanel panel = new JPanel();
+
+        JTextArea textArea = new JTextArea();
+        textArea.setSize(600, 400);
+        textArea.setEditable(false);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setText("Hello, users! Here is the introduction of this program.\n" +
+                "This program can encrypt and decrypt both text and files.\n" +
+                "---- The \"Text DES Encryption & Decryption\" part can encrypt and decrypt the text\n" +
+                "---- The \"File DES Encryption & Decryption\" part can encrypt and decrypt the files!\n");
+
+        panel.add(textArea);
+        return panel;
     }
 
     private static JComponent createTextPanel() {
@@ -79,21 +91,18 @@ public class testView {
         contentPanel.setLocation(50, 260);
 
 
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if ("***Please enter origin text!***".equals(enterArea.getText()) || "***Please enter text!***".equals(keyField.getText())) {
-                    contentArea.setForeground(Color.red);
-                    contentArea.setText("***Please change the default content!!!***");
-                } else {
-                    String origin_Text = enterArea.getText();
-                    String key = keyField.getText();
-                    BASE64Encoder encoder = new BASE64Encoder();
-                    DES des = new DES(key, origin_Text);
-                    byte[] context = des.deal(origin_Text.getBytes(), 1);
-                    contentArea.setForeground(Color.decode("#008B45"));
-                    contentArea.setText("Encryption Code:\n" + encoder.encode(context));
-                }
+        button.addActionListener(e -> {
+            if ("***Please enter origin text!***".equals(enterArea.getText()) || "***Please enter text!***".equals(keyField.getText())) {
+                contentArea.setForeground(Color.red);
+                contentArea.setText("***Please change the default content!!!***");
+            } else {
+                String origin_Text = enterArea.getText();
+                String key = keyField.getText();
+                BASE64Encoder encoder = new BASE64Encoder();
+                DES des = new DES(key);
+                byte[] context = des.operate(origin_Text.getBytes(), 1);
+                contentArea.setForeground(Color.decode("#008B45"));
+                contentArea.setText("Encryption Code:\n" + encoder.encode(context));
             }
         });
 
@@ -146,12 +155,20 @@ public class testView {
                     BASE64Decoder decoder = new BASE64Decoder();
                     try {
                         byte[] text = decoder.decodeBuffer(encryption_Code);
-                        DES des = new DES(key, new String(text));
-                        byte[] decryption = des.deal(text, 0);
-//                        byte[] dec_text = new byte[decryption.length];
-//                        System.arraycopy(decryption, 0, dec_text, 0, text.length);
-                        contentArea.setForeground(Color.decode("#008B45"));
-                        contentArea.setText("Content After Decryption:\n" + new String(decryption).replace("\u0006", "").replace("\u0007", ""));
+                        DES des = new DES(key);
+                        byte[] decryption = des.operate(text, 0);
+
+                        int r_Num = decryption[decryption.length-1];
+                        if (r_Num < 8) {
+                            byte[] dec_Text = new byte[decryption.length - r_Num];
+                            System.arraycopy(decryption, 0, dec_Text, 0, dec_Text.length);
+                            contentArea.setForeground(Color.decode("#008B45"));
+                            contentArea.setText("Content After Decryption:\n" + new String(dec_Text));
+                        } else {
+                            contentArea.setForeground(Color.decode("#008B45"));
+                            contentArea.setText("Content After Decryption:\n" + new String(decryption));
+                        }
+
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
@@ -204,14 +221,12 @@ public class testView {
         selectButton.setLocation(670, 10);
         selectButton.setSize(100, 50);
         selectButton.setBackground(Color.CYAN);
-        selectButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                storeButton.setEnabled(true);
-                showFileOpenDialog(panel, filePathArea);
-                if ("".equals(filePathArea.getText())) {
-                    storeButton.setEnabled(false);
-                }
+        selectButton.addActionListener(e -> {
+            storeButton.setEnabled(true);
+            storagePathArea.setText("");
+            showFileOpenDialog(panel, filePathArea);
+            if ("".equals(filePathArea.getText())) {
+                storeButton.setEnabled(false);
             }
         });
 
@@ -227,14 +242,11 @@ public class testView {
         storeButton.setLocation(670, 70);
         storeButton.setSize(100, 50);
         storeButton.setEnabled(false);
-        storeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                confirmButton.setEnabled(true);
-                shoeFileSaveDialog(panel, storagePathArea, filePathArea);
-                if ("".equals(storagePathArea.getText())) {
-                    confirmButton.setEnabled(false);
-                }
+        storeButton.addActionListener(e -> {
+            confirmButton.setEnabled(true);
+            shoeFileSaveDialog(panel, storagePathArea, filePathArea);
+            if ("".equals(storagePathArea.getText())) {
+                confirmButton.setEnabled(false);
             }
         });
 
@@ -253,41 +265,32 @@ public class testView {
 
         encryptionButton.setLocation(450, 130);
         encryptionButton.setSize(100, 30);
-        encryptionButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                radioButtonSelected[0] = 1;
-            }
-        });
+        encryptionButton.addActionListener(e -> radioButtonSelected[0] = 1);
         decryptionButton.setLocation(550, 130);
         decryptionButton.setSize(100, 30);
-        decryptionButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                radioButtonSelected[0] = 2;
-            }
-        });
+        decryptionButton.addActionListener(e -> radioButtonSelected[0] = 2);
 
         confirmButton.setLocation(670, 130);
         confirmButton.setSize(100, 30);
         confirmButton.setBackground(Color.GREEN);
         confirmButton.setEnabled(false);
-        confirmButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if ("".equals(keyField.getText()) || radioButtonSelected[0] == 0) {
-                    displayArea.setForeground(Color.red);
-                    displayArea.setText("Please set the Key and choose the Encryption & Decryption mode!!!");
-                } else if (radioButtonSelected[0] == 1) {
-                    String filename = filePathArea.getText();
+        confirmButton.addActionListener(e -> {
+            if ("".equals(keyField.getText()) || radioButtonSelected[0] == 0) {
+                displayArea.setForeground(Color.red);
+                displayArea.setText("Please set the Key and choose the Encryption & Decryption mode!!!");
+            } else if (radioButtonSelected[0] == 1) {
+                String filename = filePathArea.getText();
+
+                String[] fileSegment = filename.split("\\.");
+                if ("DES".equals(fileSegment[fileSegment.length - 1])) {
+                    displayArea.setForeground(Color.RED);
+                    displayArea.setText("This file has been encrypted!\n Please change a file to encrypt or change the mode to decrypt!");
+                } else {
                     File file = new File(filename);
                     BASE64Encoder encoder = new BASE64Encoder();
                     try {
                         FileInputStream fileInputStream = new FileInputStream(file);
                         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                        FileOutputStream fos = null;
-                        BufferedOutputStream s_bos = null;
-                        File s_File = null;
 
                         byte[] b = new byte[1024];
                         int len;
@@ -297,29 +300,18 @@ public class testView {
 
                         byte[] fileByte = bos.toByteArray();
                         String originContent = new String(fileByte);
-                        DES des = new DES(keyField.getText(), originContent);
-                        byte[] encryptionByte = des.deal(fileByte, 1);
+                        DES des = new DES(keyField.getText());
+                        byte[] encryptionByte = des.operate(fileByte, 1);
                         String code = encoder.encode(encryptionByte);
 
-                        String fileType = filename.split("\\.")[1];
-                        String storageContent = fileType + "\n" + code;
+                        String originalFileType = fileSegment[fileSegment.length - 1];
+                        String storageContent = originalFileType + "\n" + code;
 
                         Files.write(Paths.get(storagePathArea.getText()), storageContent.getBytes());
                         displayArea.setForeground(Color.BLACK);
-                        displayArea.setText("The Storage file path is:\n" + storagePathArea.getText() + "\n\n");
+                        displayArea.setText("The file is encrypted successfully!\n");
+                        displayArea.append("The Storage file path is:\n" + storagePathArea.getText() + "\n");
                         displayArea.append("Encryption code of origin content from the file:\n" + code);
-
-//                        s_File = new File(storagePathArea.getText());
-//                        if (!s_File.getParentFile().exists()) {
-//                            s_File.getParentFile().mkdirs();
-//                        }
-//
-//                        fos = new FileOutputStream(s_File);
-//                        s_bos = new BufferedOutputStream(fos);
-//                        s_bos.write(encryptionByte);
-//
-//                        s_bos.close();
-//                        fos.close();
                     } catch (FileNotFoundException fileNotFoundException) {
                         fileNotFoundException.printStackTrace();
                         displayArea.setForeground(Color.RED);
@@ -327,16 +319,22 @@ public class testView {
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
-                } else if (radioButtonSelected[0] == 2) {
-                    String filePath = filePathArea.getText();
-                    BASE64Decoder decoder = new BASE64Decoder();
+                }
+            } else if (radioButtonSelected[0] == 2) {
+                String filePath = filePathArea.getText();
+                BASE64Decoder decoder = new BASE64Decoder();
 
+                String[] fileSegment = filePath.split("\\.");
+                if (!"DES".equals(fileSegment[fileSegment.length - 1])) {
+                    displayArea.setForeground(Color.RED);
+                    displayArea.setText("This is not a encrypted file!\n Please change a file or change the mode to encryption!");
+                } else {
                     String[] arr = filePath.split("\\\\");
                     String filename = arr[arr.length - 1].split("\\.")[0];
 
                     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
                         String line;
-                        String contentCode = "";
+                        StringBuilder contentCode = new StringBuilder();
                         LinkedList<String> contentList = new LinkedList<>();
                         while ((line = br.readLine()) != null) {
                             contentList.add(line);
@@ -344,13 +342,23 @@ public class testView {
 
                         String fileType = contentList.get(0);
                         contentList.remove(0);
-                        for (String item: contentList) {
-                            contentCode += item;
+                        for (String item : contentList) {
+                            contentCode.append(item);
                         }
 
-                        byte[] code = decoder.decodeBuffer(contentCode);
-                        DES des = new DES(keyField.getText(), new String(code));
-                        byte[] contentByte = des.deal(code, 0);
+                        byte[] code = decoder.decodeBuffer(contentCode.toString());
+                        DES des = new DES(keyField.getText());
+                        byte[] originContentByte = des.operate(code, 0);
+                        byte[] finalContentBytes;
+
+                        int r_Num = originContentByte[originContentByte.length - 1];
+                        if (r_Num < 8) {
+                            finalContentBytes = new byte[originContentByte.length - r_Num];
+                            System.arraycopy(originContentByte, 0, finalContentBytes, 0, finalContentBytes.length);
+                        } else {
+                            finalContentBytes = new byte[originContentByte.length];
+                            System.arraycopy(originContentByte, 0, finalContentBytes, 0, finalContentBytes.length);
+                        }
 
                         BufferedOutputStream bos;
                         FileOutputStream fos;
@@ -361,7 +369,7 @@ public class testView {
 
                         fos = new FileOutputStream(file);
                         bos = new BufferedOutputStream(fos);
-                        bos.write(contentByte);
+                        bos.write(finalContentBytes);
 
                         bos.close();
                         fos.close();
