@@ -2,57 +2,83 @@ package DESAlgorithm;
 
 import static DESAlgorithm.DESMetric.*;
 
-public class DES {
-    private int Origin_Length;
-    private int[][] Sub_Keys = new int[16][48];
+/**
+ * This class the main class of DES algorithms.
+ * The encryption or decryption function is method -- operation()
+ */
 
+public class DES {
+    // This is metric for key
+    private final int[][] Sub_Keys = new int[16][48];
+
+    /**
+     * Constructor of this class
+     * @param key   the key used for encryption or decryption
+     */
     public DES(String key) {
         generateKeys(key);
     }
 
-    public byte[] operate(byte[] p, int flag) {
-        Origin_Length = p.length;
+    /**
+     * The main decryption or encryption method
+     * @param content the bytes of entered content
+     * @param flag  the choose of encryption or decryption
+     * @return  the bytes after encryption or decryption operations
+     */
+    public byte[] operate(byte[] content, int flag) {
+        int origin_Length = content.length;
         int g_Num;
         int r_Num;
-        g_Num = Origin_Length / 8;
-        r_Num = 8 - (Origin_Length - g_Num * 8);
-        byte[] p_Padding;
+        g_Num = origin_Length / 8;
+        r_Num = 8 - (origin_Length - g_Num * 8);
+        byte[] content_Padding;
 
+        // If the length of bytes is not octuple, need to add enough rest numbers to chang it to a octuple length
         if (r_Num < 8) {
-            p_Padding = new byte[Origin_Length + r_Num];
-            System.arraycopy(p, 0, p_Padding, 0, Origin_Length);
+            content_Padding = new byte[origin_Length + r_Num];
+            System.arraycopy(content, 0, content_Padding, 0, origin_Length);
             for (int i = 0; i < r_Num; i++) {
-                p_Padding[Origin_Length + i] = (byte) r_Num;
+                content_Padding[origin_Length + i] = (byte) r_Num;
             }
         } else {
-            p_Padding = p;
+            content_Padding = content;
         }
 
-        g_Num = p_Padding.length / 8;
-        byte[] f_p = new byte[8];
-        byte[] result_data = new byte[p_Padding.length];
+        // separate the bytes array into several 8 length arrays and operate them respectively
+        // Then combine them together and return
+        g_Num = content_Padding.length / 8;
+        byte[] content_segment = new byte[8];
+        byte[] result_data = new byte[content_Padding.length];
         for (int i = 0; i < g_Num; i++) {
-            System.arraycopy(p_Padding, i * 8, f_p, 0, 8);
-            System.arraycopy(encrytionUnit(f_p, Sub_Keys, flag), 0, result_data, i * 8, 8);
+            System.arraycopy(content_Padding, i * 8, content_segment, 0, 8);
+            System.arraycopy(EnOrDecrytionUnit(content_segment, Sub_Keys, flag), 0, result_data, i * 8, 8);
         }
 
         return result_data;
     }
 
-
-    public byte[] encrytionUnit(byte[] p, int k[][], int flag) {
-        int[] p_bit = new int[64];
+    /**
+     * Encryption or Decryption method
+     * @param content the content need to be operate
+     * @param k key
+     * @param flag  chosen mode
+     * @return  content after encryption or decryption
+     */
+    public byte[] EnOrDecrytionUnit(byte[] content, int k[][], int flag) {
+        int[] content_bit = new int[64];
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 8; i++) {
-            String p_b = Integer.toBinaryString(p[i]&0xff);
-            while (p_b.length() % 8 != 0) {
-                p_b = "0" + p_b;
+            // use &0xff to Protect the stack overflow from transmitting negative number to eight length bits
+            // like -35 will be transferred to "11111111111111111...101010" that is much bigger than eight-bits length and break the structure of content metric, which must be 64 length
+            String content_b = Integer.toBinaryString(content[i]&0xff);
+            while (content_b.length() % 8 != 0) {
+                content_b = "0" + content_b;
             }
-            stringBuilder.append(p_b);
+            stringBuilder.append(content_b);
         }
-        String p_str = stringBuilder.toString();
+        String content_str = stringBuilder.toString();
         for (int i = 0; i < 64; i++) {
-            int p_t = (int) p_str.charAt(i);
+            int p_t = (int) content_str.charAt(i);
             if (p_t == 48) {
                 p_t = 0;
             } else if (p_t == 49) {
@@ -60,60 +86,75 @@ public class DES {
             }else{
                 System.out.println("Convert to bit error!!!");
             }
-            p_bit[i] = p_t;
+            content_bit[i] = p_t;
         }
 
         /**
          *  IP convert part
          */
-        int[] p_IP = new int[64];
+        int[] content_IP = new int[64];
         for (int i = 0; i < 64; i++) {
-            p_IP[i] = p_bit[IP[i] - 1];
+            content_IP[i] = content_bit[IP[i] - 1];
         }
         if (flag == 1) {
             for (int i = 0; i < 16; i++) {
-                L(p_IP, i, flag, k[i]);
+                separationFunction(content_IP, i, flag, k[i]);
             }
         } else if (flag == 0) {
             for (int i = 15; i > -1; i--) {
-                L(p_IP, i, flag, k[i]);
+                separationFunction(content_IP, i, flag, k[i]);
             }
         }
         int[] c = new int[64];
         for (int i = 0; i < IP_1.length; i++) {
-            c[i] = p_IP[IP_1[i] - 1];
+            c[i] = content_IP[IP_1[i] - 1];
         }
-        byte[] c_byte = new byte[8];
+
+        /**
+         * convert bits into unicode bytes
+         */
+        byte[] convert_byte = new byte[8];
         for (int i = 0; i < 8; i++) {
-            c_byte[i] = (byte) ((c[8 * i] << 7) + (c[8 * i + 1] << 6) + (c[8 * i + 2] << 5) + (c[8 * i + 3] << 4)+(c[8 * i + 4] << 3)+(c[8 * i + 5] << 2)+(c[8 * i + 6] << 1)+(c[8 * i + 7]));
+            convert_byte[i] = (byte) ((c[8 * i] << 7) + (c[8 * i + 1] << 6) + (c[8 * i + 2] << 5) + (c[8 * i + 3] << 4)+(c[8 * i + 4] << 3)+(c[8 * i + 5] << 2)+(c[8 * i + 6] << 1)+(c[8 * i + 7]));
         }
-        return c_byte;
+        return convert_byte;
     }
 
-
-    public void L(int[] M, int times, int flag, int[] keyarray) {
+    /**
+     * Separate function to separate array to Left and Right two parts for further operation
+     * @param origin the original 64 length array
+     * @param times separating times
+     * @param flag  chosen mode
+     * @param keyarray  key bits array
+     */
+    public void separationFunction(int[] origin, int times, int flag, int[] keyarray) {
         int[] L0 = new int[32];
         int[] R0 = new int[32];
         int[] L1 = new int[32];
         int[] R1 = new int[32];
         int[] f = new int[32];
-        System.arraycopy(M, 0, L0, 0, 32);
-        System.arraycopy(M, 32, R0, 0, 32);
+        System.arraycopy(origin, 0, L0, 0, 32);
+        System.arraycopy(origin, 32, R0, 0, 32);
         L1 = R0;
         f = f_Function(R0, keyarray);
         for (int j = 0; j < 32; j++) {
             R1[j] = L0[j]^f[j];
             if (((flag == 0) && (times == 0)) || ((flag == 1) && (times == 15))) {
-                M[j] = R1[j];
-                M[j + 32] = L1[j];
+                origin[j] = R1[j];
+                origin[j + 32] = L1[j];
             } else {
-                M[j] = L1[j];
-                M[j + 32] = R1[j];
+                origin[j] = L1[j];
+                origin[j + 32] = R1[j];
             }
         }
     }
 
-
+    /**
+     * F function for box transmit and compress
+     * @param r_content The right part of original array
+     * @param key   key
+     * @return  F array for right part operation
+     */
     public int[] f_Function(int[] r_content, int[] key) {
         int[] result = new int[32];
         int[] e_k = new int[48];
@@ -158,7 +199,10 @@ public class DES {
         return result;
     }
 
-
+    /**
+     * Generate keys into arrays for decryption or encryption
+     * @param key   key
+     */
     public void generateKeys(String key) {
         while (key.length() < 8) {
             key = key + key;
@@ -169,6 +213,7 @@ public class DES {
         int[] k_bit = new int[64];
 
         for (int i = 0; i < 8; i++) {
+            // the principle of using &0xff is same as the usage in encryption
             String k_str = Integer.toBinaryString(keys[i]&0xff);
             if (k_str.length() < 8) {
                 int length = k_str.length();

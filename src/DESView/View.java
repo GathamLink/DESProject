@@ -14,7 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 
-public class testView {
+/**
+ * This is the view part
+ */
+public class View {
 
     public static void main(String[] args) {
         JFrame jf = new JFrame("Test Window");
@@ -34,6 +37,10 @@ public class testView {
         jf.setVisible(true);
     }
 
+    /**
+     * Introduction panel create method
+     * @return  introduction panel
+     */
     private static JComponent createIntroductionPanel() {
         JPanel panel = new JPanel();
 
@@ -51,6 +58,10 @@ public class testView {
         return panel;
     }
 
+    /**
+     * Text panel create method
+     * @return  text panel
+     */
     private static JComponent createTextPanel() {
         JTabbedPane pane = new JTabbedPane();
 
@@ -61,6 +72,10 @@ public class testView {
         return pane;
     }
 
+    /**
+     * encryption panel
+     * @return  encryption panel
+     */
     private static JComponent createEncryptionPanel() {
         JPanel panel = new JPanel(null);
 
@@ -113,6 +128,10 @@ public class testView {
         return panel;
     }
 
+    /**
+     * decryption panel
+     * @return  decryption panel
+     */
     private static JComponent createDecryptionPanel() {
         JPanel panel = new JPanel(null);
 
@@ -183,6 +202,10 @@ public class testView {
         return panel;
     }
 
+    /**
+     * file panel
+     * @return file panel
+     */
     private static JComponent createFilePanel() {
         final int[] radioButtonSelected = {0};
 
@@ -299,7 +322,6 @@ public class testView {
                         }
 
                         byte[] fileByte = bos.toByteArray();
-                        String originContent = new String(fileByte);
                         DES des = new DES(keyField.getText());
                         byte[] encryptionByte = des.operate(fileByte, 1);
                         String code = encoder.encode(encryptionByte);
