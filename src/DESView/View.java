@@ -7,15 +7,16 @@ import sun.misc.BASE64Encoder;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 
 /**
- * This is the view part
+ * This is the GUI interface part
+ * @author Jin Chenzhe
+ * @student_number 18372125
+ * @date 2021/10/15
  */
 public class View {
 
@@ -162,35 +163,32 @@ public class View {
         contentPanel.setLocation(50, 260);
 
 
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if ("***Please enter encryption codes!***".equals(enterArea.getText()) || "***Please enter text!***".equals(keyField.getText())) {
-                    contentArea.setForeground(Color.red);
-                    contentArea.setText("***Please change the default content!!!***");
-                } else {
-                    String encryption_Code = enterArea.getText();
-                    String key = keyField.getText();
-                    BASE64Decoder decoder = new BASE64Decoder();
-                    try {
-                        byte[] text = decoder.decodeBuffer(encryption_Code);
-                        DES des = new DES(key);
-                        byte[] decryption = des.operate(text, 0);
+        button.addActionListener(e -> {
+            if ("***Please enter encryption codes!***".equals(enterArea.getText()) || "***Please enter text!***".equals(keyField.getText())) {
+                contentArea.setForeground(Color.red);
+                contentArea.setText("***Please change the default content!!!***");
+            } else {
+                String encryption_Code = enterArea.getText();
+                String key = keyField.getText();
+                BASE64Decoder decoder = new BASE64Decoder();
+                try {
+                    byte[] text = decoder.decodeBuffer(encryption_Code);
+                    DES des = new DES(key);
+                    byte[] decryption = des.operate(text, 0);
 
-                        int r_Num = decryption[decryption.length-1];
-                        if (r_Num < 8) {
-                            byte[] dec_Text = new byte[decryption.length - r_Num];
-                            System.arraycopy(decryption, 0, dec_Text, 0, dec_Text.length);
-                            contentArea.setForeground(Color.decode("#008B45"));
-                            contentArea.setText("Content After Decryption:\n" + new String(dec_Text));
-                        } else {
-                            contentArea.setForeground(Color.decode("#008B45"));
-                            contentArea.setText("Content After Decryption:\n" + new String(decryption));
-                        }
-
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
+                    int r_Num = decryption[decryption.length-1];
+                    if (r_Num < 8) {
+                        byte[] dec_Text = new byte[decryption.length - r_Num];
+                        System.arraycopy(decryption, 0, dec_Text, 0, dec_Text.length);
+                        contentArea.setForeground(Color.decode("#008B45"));
+                        contentArea.setText("Content After Decryption:\n" + new String(dec_Text));
+                    } else {
+                        contentArea.setForeground(Color.decode("#008B45"));
+                        contentArea.setText("Content After Decryption:\n" + new String(decryption));
                     }
+
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
                 }
             }
         });
@@ -376,18 +374,14 @@ public class View {
                         int r_Num = originContentByte[originContentByte.length - 1];
                         if (r_Num < 8) {
                             finalContentBytes = new byte[originContentByte.length - r_Num];
-                            System.arraycopy(originContentByte, 0, finalContentBytes, 0, finalContentBytes.length);
                         } else {
                             finalContentBytes = new byte[originContentByte.length];
-                            System.arraycopy(originContentByte, 0, finalContentBytes, 0, finalContentBytes.length);
                         }
+                        System.arraycopy(originContentByte, 0, finalContentBytes, 0, finalContentBytes.length);
 
                         BufferedOutputStream bos;
                         FileOutputStream fos;
                         File file = new File(storagePathArea.getText() + "\\" + filename + "." + fileType);
-                        if (!file.getParentFile().exists()) {
-                            file.getParentFile().mkdirs();
-                        }
 
                         fos = new FileOutputStream(file);
                         bos = new BufferedOutputStream(fos);
@@ -450,9 +444,15 @@ public class View {
         String fileName = arr[arr.length-1];
         if (!"DES".equals(fileName.split("\\.")[1])) {
             fileChooser.setSelectedFile(new File(fileName.split("\\.")[0] + ".DES"));
-            int result = fileChooser.showSaveDialog(parent);
+            fileChooser.setFileFilter(new FileNameExtensionFilter("DES(*.DES)", "DES"));
+            int result = fileChooser.showSaveDialog(null);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
+                String filename = fileChooser.getName(file);
+                // If the file type is not the "DES" type, system changes the type
+                if (!filename.contains(".DES")) {
+                    file = new File(fileChooser.getCurrentDirectory(), filename + ".DES");
+                }
                 msgTextArea.setText(file.getAbsolutePath());
             }
         } else {

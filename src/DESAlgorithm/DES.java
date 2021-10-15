@@ -60,11 +60,11 @@ public class DES {
     /**
      * Encryption or Decryption method
      * @param content the content need to be operate
-     * @param k key
+     * @param key key
      * @param flag  chosen mode
      * @return  content after encryption or decryption
      */
-    public byte[] EnOrDecrytionUnit(byte[] content, int k[][], int flag) {
+    public byte[] EnOrDecrytionUnit(byte[] content, int key[][], int flag) {
         int[] content_bit = new int[64];
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 8; i++) {
@@ -98,16 +98,20 @@ public class DES {
         }
         if (flag == 1) {
             for (int i = 0; i < 16; i++) {
-                separationFunction(content_IP, i, flag, k[i]);
+                separationFunction(content_IP, i, flag, key[i]);
             }
         } else if (flag == 0) {
             for (int i = 15; i > -1; i--) {
-                separationFunction(content_IP, i, flag, k[i]);
+                separationFunction(content_IP, i, flag, key[i]);
             }
         }
-        int[] c = new int[64];
+
+        /**
+         * IP_1 convert after encryption or decryption process
+         */
+        int[] convert_result = new int[64];
         for (int i = 0; i < IP_1.length; i++) {
-            c[i] = content_IP[IP_1[i] - 1];
+            convert_result[i] = content_IP[IP_1[i] - 1];
         }
 
         /**
@@ -115,7 +119,7 @@ public class DES {
          */
         byte[] convert_byte = new byte[8];
         for (int i = 0; i < 8; i++) {
-            convert_byte[i] = (byte) ((c[8 * i] << 7) + (c[8 * i + 1] << 6) + (c[8 * i + 2] << 5) + (c[8 * i + 3] << 4)+(c[8 * i + 4] << 3)+(c[8 * i + 5] << 2)+(c[8 * i + 6] << 1)+(c[8 * i + 7]));
+            convert_byte[i] = (byte) ((convert_result[8 * i] << 7) + (convert_result[8 * i + 1] << 6) + (convert_result[8 * i + 2] << 5) + (convert_result[8 * i + 3] << 4)+(convert_result[8 * i + 4] << 3)+(convert_result[8 * i + 5] << 2)+(convert_result[8 * i + 6] << 1)+(convert_result[8 * i + 7]));
         }
         return convert_byte;
     }

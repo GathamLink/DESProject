@@ -1,5 +1,8 @@
 package DESAlgorithm;
 
+/**
+ * This class stores the necessary metrics for DES algorithm
+ */
 public class DESMetric {
 
     public static final int[] IP = {
