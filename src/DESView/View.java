@@ -1,8 +1,8 @@
 package DESView;
 
 import DESAlgorithm.DES;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+//import sun.misc.BASE64Decoder;
+//import sun.misc.BASE64Encoder;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -10,6 +10,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.LinkedList;
 
 /**
@@ -114,11 +115,12 @@ public class View {
             } else {
                 String origin_Text = enterArea.getText();
                 String key = keyField.getText();
-                BASE64Encoder encoder = new BASE64Encoder();
+//                BASE64Encoder encoder = new BASE64Encoder();
+                Base64.Encoder encoder = Base64.getEncoder();
                 DES des = new DES(key);
                 byte[] context = des.operate(origin_Text.getBytes(), 1);
                 contentArea.setForeground(Color.decode("#008B45"));
-                contentArea.setText("Encryption Code:\n" + encoder.encode(context));
+                contentArea.setText("Encryption Code:\n" + encoder.encodeToString(context));
             }
         });
 
@@ -170,26 +172,22 @@ public class View {
             } else {
                 String encryption_Code = enterArea.getText();
                 String key = keyField.getText();
-                BASE64Decoder decoder = new BASE64Decoder();
-                try {
-                    byte[] text = decoder.decodeBuffer(encryption_Code);
-                    DES des = new DES(key);
-                    byte[] decryption = des.operate(text, 0);
+                Base64.Decoder decoder = Base64.getDecoder();
+                byte[] text = decoder.decode(encryption_Code);
+                DES des = new DES(key);
+                byte[] decryption = des.operate(text, 0);
 
-                    int r_Num = decryption[decryption.length-1];
-                    if (r_Num < 8) {
-                        byte[] dec_Text = new byte[decryption.length - r_Num];
-                        System.arraycopy(decryption, 0, dec_Text, 0, dec_Text.length);
-                        contentArea.setForeground(Color.decode("#008B45"));
-                        contentArea.setText("Content After Decryption:\n" + new String(dec_Text));
-                    } else {
-                        contentArea.setForeground(Color.decode("#008B45"));
-                        contentArea.setText("Content After Decryption:\n" + new String(decryption));
-                    }
-
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
+                int r_Num = decryption[decryption.length-1];
+                if (r_Num < 8) {
+                    byte[] dec_Text = new byte[decryption.length - r_Num];
+                    System.arraycopy(decryption, 0, dec_Text, 0, dec_Text.length);
+                    contentArea.setForeground(Color.decode("#008B45"));
+                    contentArea.setText("Content After Decryption:\n" + new String(dec_Text));
+                } else {
+                    contentArea.setForeground(Color.decode("#008B45"));
+                    contentArea.setText("Content After Decryption:\n" + new String(decryption));
                 }
+
             }
         });
 
@@ -308,7 +306,7 @@ public class View {
                     displayArea.setText("This file has been encrypted!\n Please change a file to encrypt or change the mode to decrypt!");
                 } else {
                     File file = new File(filename);
-                    BASE64Encoder encoder = new BASE64Encoder();
+                    Base64.Encoder encoder = Base64.getEncoder();
                     try {
                         FileInputStream fileInputStream = new FileInputStream(file);
                         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -322,7 +320,7 @@ public class View {
                         byte[] fileByte = bos.toByteArray();
                         DES des = new DES(keyField.getText());
                         byte[] encryptionByte = des.operate(fileByte, 1);
-                        String code = encoder.encode(encryptionByte);
+                        String code = encoder.encodeToString(encryptionByte);
 
                         String originalFileType = fileSegment[fileSegment.length - 1];
                         String storageContent = originalFileType + "\n" + code;
@@ -342,7 +340,7 @@ public class View {
                 }
             } else if (radioButtonSelected[0] == 2) {
                 String filePath = filePathArea.getText();
-                BASE64Decoder decoder = new BASE64Decoder();
+                Base64.Decoder decoder = Base64.getDecoder();
 
                 String[] fileSegment = filePath.split("\\.");
                 if (!"DES".equals(fileSegment[fileSegment.length - 1])) {
@@ -366,7 +364,7 @@ public class View {
                             contentCode.append(item);
                         }
 
-                        byte[] code = decoder.decodeBuffer(contentCode.toString());
+                        byte[] code = decoder.decode(contentCode.toString());
                         DES des = new DES(keyField.getText());
                         byte[] originContentByte = des.operate(code, 0);
                         byte[] finalContentBytes;
